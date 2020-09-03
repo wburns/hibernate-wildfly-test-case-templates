@@ -1,0 +1,34 @@
+group 'org.hibernate'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceSets.test.resources {
+	setSrcDirs( ['src/test/java'] )
+}
+
+buildDir = "target"
+
+def hibernateGroupId = 'org.hibernate'
+
+def hibernateVersion = libraries.hibernate_5_3_version
+
+dependencies {
+
+	compile group: hibernateGroupId, name: 'hibernate-core', version: hibernateVersion
+	compile group: hibernateGroupId, name: 'hibernate-testing', version: hibernateVersion
+	compile group: hibernateGroupId, name: 'hibernate-envers', version: hibernateVersion
+	compile group: hibernateGroupId, name: 'hibernate-jipijapa', version: hibernateVersion
+
+	testCompile group: 'org.hibernate', name: 'hibernate-validator', version: '5.2.4.Final'
+
+	compile group: 'org.slf4j', name: "slf4j-log4j12", version: "1.7.12"
+	compile group: 'javax.el', name: "el-api", version: "2.2.1-b04"
+
+	compile group: "com.h2database", name: "h2", version: "1.4.181"
+
+	testCompile group: 'junit', name: 'junit', version: '4.12'
+
+	compile group: 'org.apache.commons', name: 'commons-dbcp2', version: '2.1.1'
+	compile 'commons-lang:commons-lang:2.2'
+}

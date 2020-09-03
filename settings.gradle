@@ -1,0 +1,3 @@
+rootProject.name = 'hibernate-wildfly-test-case-templates'
+include 'orm5'
+
