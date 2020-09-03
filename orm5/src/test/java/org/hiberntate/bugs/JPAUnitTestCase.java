@@ -37,7 +37,6 @@ public class JPAUnitTestCase extends WildFlyFunctionalTestCase {
 //		);
 	}
 
-	// Entities are auto-discovered, so just add them anywhere on class-path
 	// Add your tests, using standard JUnit.
 	@Test
 	public void testIt() {
