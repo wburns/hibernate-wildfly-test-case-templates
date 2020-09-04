@@ -1,0 +1,112 @@
+package org.hibernate.integration;
+
+import java.util.logging.Logger;
+import javax.inject.Inject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.transaction.UserTransaction;
+
+import org.hibernate.Session;
+import org.hibernate.cfg.AvailableSettings;
+import org.hibernate.model.TestEntity;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.junit.Arquillian;
+import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.EmptyAsset;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
+import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.shrinkwrap.descriptor.api.Descriptors;
+import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceDescriptor;
+import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceUnitTransactionType;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.IsNull.notNullValue;
+
+
+/**
+ * @author Andrea Boriero
+ */
+@RunWith(Arquillian.class)
+public class WildFlyIntegrationTest {
+	private static final String ORM_VERSION = Session.class.getPackage().getImplementationVersion();
+	private static final String ORM_MINOR_VERSION = ORM_VERSION.substring(
+			0,
+			ORM_VERSION.indexOf(
+					".",
+					ORM_VERSION.indexOf( "." ) + 1
+			)
+	);
+
+	@Deployment
+	public static WebArchive createDeployment() {
+		return ShrinkWrap.create( WebArchive.class )
+				.addClass( TestEntity.class )
+				.addAsWebInfResource( EmptyAsset.INSTANCE, "beans.xml" )
+				.addAsResource( new StringAsset( persistenceXml().exportAsString() ), "META-INF/persistence.xml" );
+	}
+
+	private static PersistenceDescriptor persistenceXml() {
+		return Descriptors.create( PersistenceDescriptor.class )
+				.version( "2.1" )
+				.createPersistenceUnit()
+				.name( "primary" )
+				.transactionType( PersistenceUnitTransactionType._JTA )
+				.jtaDataSource( "java:jboss/datasources/ExampleDS" )
+				.getOrCreateProperties()
+				// We want to use the ORM from this build instead of the one coming with WildFly
+				.createProperty()
+				.name( "jboss.as.jpa.providerModule" )
+				.value( "org.hibernate:" + ORM_MINOR_VERSION )
+				.up()
+				.createProperty()
+				.name( "hibernate.hbm2ddl.auto" )
+				.value( "create-drop" )
+				.up()
+//				.createProperty()
+//				.name( AvailableSettings.USE_SECOND_LEVEL_CACHE )
+//				.value( "true" )
+//				.up()
+//				.createProperty()
+//				.name( AvailableSettings.USE_QUERY_CACHE )
+//				.value( "false" )
+//				.up()
+//				.createProperty()
+//				.name( AvailableSettings.CACHE_REGION_FACTORY )
+//				.value( "org.infinispan.hibernate.cache.v53.InfinispanRegionFactory" )
+//				.up()
+				.up()
+				.up();
+	}
+
+	static Logger log = Logger.getLogger( WildFlyIntegrationTest.class.getCanonicalName() );
+
+
+	@PersistenceContext
+	private EntityManager entityManager;
+
+	@Inject
+	private UserTransaction transaction;
+
+	@Test
+	public void testIt() throws Throwable {
+		log.info( "---> test started." );
+
+		TestEntity e = new TestEntity( "Hibernate" );
+		try {
+			transaction.begin();
+			entityManager.persist( e );
+			transaction.commit(); // entity persisted here unless explicitly flushed earlier
+		}
+		catch (Throwable throwable) {
+			transaction.rollback();
+			throw throwable;
+		}
+		TestEntity finded = entityManager.find( TestEntity.class, e.getId() );
+		assertThat( finded, notNullValue() );
+	}
+
+}

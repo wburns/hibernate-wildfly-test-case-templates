@@ -1,3 +1,9 @@
 rootProject.name = 'hibernate-wildfly-test-case-templates'
-include 'orm5'
+//include 'orm'
 
+include 'orm53-wildfly-integration-test'
+include 'orm53-test'
+
+project(':orm53-test').projectDir = new File(rootProject.projectDir, "orm53/orm-test")
+
+project(':orm53-wildfly-integration-test').projectDir = new File(rootProject.projectDir, "orm53/wildfly-integration-test")

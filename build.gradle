@@ -16,6 +16,11 @@ allprojects {
 			dirs 'libs'
 		}
 	}
+	apply plugin: 'java'
+	apply plugin: 'build-dashboard'
+	apply plugin: 'project-report'
+
+	buildDir = "target"
 }
 
 buildscript {
@@ -29,6 +34,5 @@ buildscript {
 	dependencies {
 		classpath "me.champeau.gradle:jmh-gradle-plugin:0.4.7"
 		classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.1'
-
 	}
 }

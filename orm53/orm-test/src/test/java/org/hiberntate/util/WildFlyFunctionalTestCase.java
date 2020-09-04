@@ -42,7 +42,7 @@ import org.jboss.logging.Logger;
 /**
  * @author Andrea Boriero
  */
-public class WildFlyFunctionalTestCase extends BaseUnitTestCase {
+public abstract class WildFlyFunctionalTestCase extends BaseUnitTestCase {
 	public static final String NAMING_STRATEGY_JPA_COMPLIANT_IMPL = "org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl";
 	private static final Logger log = Logger.getLogger( WildFlyFunctionalTestCase.class );
 
