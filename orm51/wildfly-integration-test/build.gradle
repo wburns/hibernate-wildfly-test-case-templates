@@ -1,0 +1,152 @@
+/*
+ * Hibernate, Relational Persistence for Idiomatic Java
+ *
+ * License: GNU Lesser General Public License (LGPL), version 2.1 or later.
+ * See the lgpl.txt file in the root directory or <http://www.gnu.org/licenses/lgpl-2.1.html>.
+ */
+apply plugin: 'base'
+apply plugin: 'maven'
+
+def hibernateVersion = '5.1.18.Final'
+def wildflyVersion = '10.0.0.Final'
+
+
+ext {
+	// Exact ORM version, e.g. "5.1.1.Final"
+	hibernateVersion = '5.1.17.Final'
+	// Just the minor ORM version, e.g. "5.1"; Is used as an alias for the exact version
+	minorSlot = hibernateVersion.substring( 0, hibernateVersion.indexOf( ".", hibernateVersion.indexOf( "." ) + 1 ) )
+
+	majorWildflyVersion = wildflyVersion.substring( 0, wildflyVersion.indexOf( "." ) )
+
+	// directory for building the ZIP file from
+	modulesDirectory = "$buildDir/hibernate-orm-modules"
+}
+
+configurations {
+	jipijapa
+	wildflyDist
+	hibernateCore
+	hibernateEntityManager
+	hibernateEnvers
+	hibernateJava8
+	hibernateInfinispan
+}
+
+dependencies {
+	jipijapa "org.wildfly:jipijapa-hibernate5:${wildflyVersion}"
+	wildflyDist "org.wildfly:wildfly-dist:${wildflyVersion}@zip"
+	hibernateCore "org.hibernate:hibernate-core:${hibernateVersion}"
+	hibernateEntityManager "org.hibernate:hibernate-entitymanager:${hibernateVersion}"
+	hibernateEnvers "org.hibernate:hibernate-envers:${hibernateVersion}"
+	hibernateJava8 "org.hibernate:hibernate-java8:${hibernateVersion}"
+	hibernateInfinispan "org.hibernate:hibernate-infinispan:${hibernateVersion}"
+
+	testCompile "org.hibernate:hibernate-core:${hibernateVersion}"
+	testCompile "org.hibernate:hibernate-entitymanager:${hibernateVersion}"
+	testCompile libraries.junit
+	testCompile libraries.arquillian_junit_container
+	testCompile libraries.arquillian_protocol_servlet
+	testCompile libraries.shrinkwrap_descriptors_api_javaee
+	testCompile libraries.shrinkwrap_descriptors_impl_javaee
+	testCompile libraries.wildfly_arquillian_container_managed
+}
+
+/*************************/
+/*         Main          */
+/*************************/
+
+// Copies all the module.xml descriptors into the output directory
+task copyModuleXmls( type: Copy ) {
+	into( modulesDirectory )
+	expand( slot: hibernateVersion, minorSlot: minorSlot, version: hibernateVersion, wildflyVersion: wildflyVersion )
+
+
+	// Actual module.xml files
+	into( 'org/hibernate/' + hibernateVersion ) {
+		from 'src/main/modules/org/hibernate/core'
+	}
+
+	into( 'org/hibernate/infinispan/' + hibernateVersion ) {
+		from 'src/main/modules/org/hibernate/infinispan'
+	}
+
+	into( 'org/hibernate/jipijapa-hibernate5/' + hibernateVersion ) {
+		from 'src/main/modules/org/hibernate/jipijapa-hibernate5'
+	}
+
+	// Aliases
+	into( 'org/hibernate/' + minorSlot ) {
+		from 'src/main/aliases/org/hibernate/core'
+	}
+
+	into( 'org/hibernate/infinispan/' + minorSlot ) {
+		from 'src/main/aliases/org/hibernate/infinispan'
+	}
+
+	into( 'org/hibernate/jipijapa-hibernate5/' + minorSlot ) {
+		from 'src/main/aliases/org/hibernate/jipijapa-hibernate5'
+	}
+}
+
+// Copies all the ORM JARs and the JipiJapa JAR into the output directory
+task copyJars( dependsOn: copyModuleXmls, type: Copy ) {
+	into( modulesDirectory )
+
+	into( 'org/hibernate/' + hibernateVersion ) {
+		from configurations.hibernateCore.copy().setTransitive( false )
+		from configurations.hibernateEntityManager.copy().setTransitive( false )
+		from configurations.hibernateEnvers.copy().setTransitive( false )
+		from configurations.hibernateJava8.copy().setTransitive( false )
+	}
+
+	into( 'org/hibernate/infinispan/' + hibernateVersion ) {
+		from configurations.hibernateInfinispan.copy().setTransitive( false )
+
+	}
+
+	into( 'org/hibernate/jipijapa-hibernate5/' + hibernateVersion ) {
+		from configurations.jipijapa.copy().setTransitive( false )
+	}
+}
+
+// Creates a ZIP from the output directory
+task createModulesZip( dependsOn: copyJars, type: Zip ) {
+	classifier = "wildfly-${majorWildflyVersion}-dist"
+	from modulesDirectory
+}
+
+/*************************/
+/*        Testing        */
+/*************************/
+
+// Unzip Wildfly Dist
+task extractWildFly( type: Copy ) {
+	from {
+		configurations.wildflyDist.collect { zipTree( it ) }
+	}
+	into "$buildDir/"
+}
+
+// Unzip Hibernate ORM Modules ZIP into the server's "modules" dir
+task extractModules( dependsOn: [extractWildFly, createModulesZip], type: Copy ) {
+	duplicatesStrategy DuplicatesStrategy.EXCLUDE
+	from zipTree( createModulesZip.archivePath )
+	into "$buildDir/wildfly-${wildflyVersion}/modules"
+}
+
+// Replace properties in arquillian.xml; Actually this should be done by means of configuring
+// the processTestResourcesTask itself, but while that works for resources in src/main/resources,
+// the same failed for src/test/resources; I reckon it's a bug in Gradle
+task filterArquillianXml( dependsOn: processTestResources, type: Copy ) {
+	into( buildDir.getName() + '/resources/test' )
+	expand( buildDir: buildDir.getName(), wildflyVersion: wildflyVersion )
+
+	from 'src/test/resources'
+}
+
+test.dependsOn extractModules
+test.dependsOn filterArquillianXml
+
+build.dependsOn createModulesZip
+

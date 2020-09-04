@@ -13,14 +13,16 @@
     <defaultProtocol type="Servlet 3.0" />
 
     <!-- Uncomment in order to inspect deployments -->
+    <!--
     <engine>
-        <property name="deploymentExportPath">/home/aboriero/hibernate/hibernate-wildfly-test-case-templates/target/arquillian-deployments</property>
+        <property name="deploymentExportPath">${arquillianDeploymentExportDir}</property>
     </engine>
+    -->
 
     <group qualifier="Grid" default="true">
         <container qualifier="container.active-1" mode="suite" default="true">
             <configuration>
-                <property name="jbossHome">/home/aboriero/hibernate/hibernate-wildfly-test-case-templates/target/wildfly</property>
+                <property name="jbossHome">${wildFlyInstallDir}</property>
                 <!-- For Remote debugging of Wildfly add the following line to the 'javaVmArguments' section below: -->
                 <!-- -agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005-->
                 <!-- DO NOT add comments within the property section below as the Arquillian parser can't deal with it -->

@@ -80,10 +80,6 @@ public class WildFlyIntegrationTest {
 //				.name( AvailableSettings.USE_QUERY_CACHE )
 //				.value( "false" )
 //				.up()
-//				.createProperty()
-//				.name( AvailableSettings.CACHE_REGION_FACTORY )
-//				.value( "org.infinispan.hibernate.cache.v53.InfinispanRegionFactory" )
-//				.up()
 				.up()
 				.up();
 	}

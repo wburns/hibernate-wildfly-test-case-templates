@@ -34,7 +34,6 @@ import org.hibernate.testing.junit4.BaseUnitTestCase;
 import org.junit.After;
 import org.junit.Before;
 
-import org.jboss.as.jpa.hibernate5.HibernateArchiveScanner;
 import org.jboss.logging.Logger;
 
 /**
@@ -45,6 +44,9 @@ import org.jboss.logging.Logger;
 public abstract class WildFlyFunctionalTestCase extends BaseUnitTestCase {
 	public static final String NAMING_STRATEGY_JPA_COMPLIANT_IMPL = "org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl";
 	private static final Logger log = Logger.getLogger( WildFlyFunctionalTestCase.class );
+
+	// IMPL NOTE : Here we use @Before and @After (instead of @BeforeClassOnce and @AfterClassOnce like we do in
+	// BaseCoreFunctionalTestCase) because the old HEM test methodology was to create an EMF for each test method.
 
 	private static final Dialect dialect = Dialect.getDialect();
 
@@ -63,7 +65,7 @@ public abstract class WildFlyFunctionalTestCase extends BaseUnitTestCase {
 
 	@Before
 	@SuppressWarnings({ "UnusedDeclaration" })
-	public void buildEntityManagerFactory() {
+	public void buildEntityManagerFactory() throws Exception {
 		log.trace( "Building EntityManagerFactory" );
 
 		entityManagerFactory = Bootstrap.getEntityManagerFactoryBuilder(
@@ -178,6 +180,7 @@ public abstract class WildFlyFunctionalTestCase extends BaseUnitTestCase {
 		if ( createSchema() ) {
 			settings.put( org.hibernate.cfg.AvailableSettings.HBM2DDL_AUTO, "create-drop" );
 		}
+		settings.put( org.hibernate.cfg.AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS, "true" );
 		settings.put( org.hibernate.cfg.AvailableSettings.DIALECT, getDialect().getClass().getName() );
 		return settings;
 	}
@@ -226,26 +229,6 @@ public abstract class WildFlyFunctionalTestCase extends BaseUnitTestCase {
 		config.put( org.hibernate.cfg.AvailableSettings.USE_NEW_ID_GENERATOR_MAPPINGS, "true" );
 		config.put( org.hibernate.cfg.AvailableSettings.KEYWORD_AUTO_QUOTING_ENABLED, "false" );
 		config.put( org.hibernate.cfg.AvailableSettings.IMPLICIT_NAMING_STRATEGY, NAMING_STRATEGY_JPA_COMPLIANT_IMPL );
-		config.put( org.hibernate.cfg.AvailableSettings.SCANNER, HibernateArchiveScanner.class );
-//		options.put(AvailableSettings.APP_CLASSLOADER, pu.getClassLoader());
-//		options.put( org.hibernate.ejb.AvailableSettings.ENTITY_MANAGER_FACTORY_NAME, pu.getScopedPersistenceUnitName());
-//		options.put( AvailableSettings.SESSION_FACTORY_NAME, pu.getScopedPersistenceUnitName());
-//		if (!pu.getProperties().containsKey(AvailableSettings.SESSION_FACTORY_NAME)) {
-//			putPropertyIfAbsent(pu, properties, AvailableSettings.SESSION_FACTORY_NAME_IS_JNDI, Boolean.FALSE);
-//		}
-		// the following properties were added to Hibernate ORM 5.3, for JPA 2.2 spec compliance.
-		config.put( org.hibernate.cfg.AvailableSettings.PREFER_GENERATOR_NAME_AS_DEFAULT_SEQUENCE_NAME, true );
-		config.put( org.hibernate.cfg.AvailableSettings.JPA_TRANSACTION_COMPLIANCE, true );
-		config.put( org.hibernate.cfg.AvailableSettings.JPA_CLOSED_COMPLIANCE, true );
-		config.put( org.hibernate.cfg.AvailableSettings.JPA_QUERY_COMPLIANCE, true );
-		config.put( org.hibernate.cfg.AvailableSettings.JPA_LIST_COMPLIANCE, true );
-		config.put( org.hibernate.cfg.AvailableSettings.JPA_CACHING_COMPLIANCE, true );
-		config.put( org.hibernate.cfg.AvailableSettings.JPA_PROXY_COMPLIANCE, true );
-		config.put( org.hibernate.cfg.AvailableSettings.ENABLE_LAZY_LOAD_NO_TRANS, false );
-		config.put( org.hibernate.cfg.AvailableSettings.JPA_ID_GENERATOR_GLOBAL_SCOPE_COMPLIANCE, true );
-
-		// Search hint
-		config.put( "hibernate.search.index_uninverting_allowed", "true" );
 	}
 
 	protected void addConfigOptions(Map options) {
@@ -313,6 +296,13 @@ public abstract class WildFlyFunctionalTestCase extends BaseUnitTestCase {
 			em.close();
 			log.warn( "The EntityManager is not closed. Closing it." );
 		}
+	}
+
+	protected EntityManager getOrCreateEntityManager() {
+		if ( em == null || !em.isOpen() ) {
+			em = entityManagerFactory.createEntityManager();
+		}
+		return em;
 	}
 
 	protected EntityManager createEntityManager() {

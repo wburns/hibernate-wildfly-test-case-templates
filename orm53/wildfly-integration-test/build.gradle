@@ -11,13 +11,15 @@ plugins {
 
 def hibernateVersion = '5.3.18.Final'
 def hibernateMinorVersion = "5.3"
+def wildflyVersion = '17.0.1.Final'
+
 
 project.tasks.jar.enabled = false
 project.tasks.javadoc.enabled = false
 
 ext {
 	// "10" for WildFly 10.x, "11" for 11.x, etc
-	wildFlyMajorVersion = project.wildflyVersion.split( '\\.' )[0]
+	wildFlyMajorVersion = wildflyVersion.split( '\\.' )[0]
 	bytebuddyVersion = project.byteBuddyVersion
 	artifactClassifier = "wildfly-${wildFlyMajorVersion}-dist"
 	wildFlyInstallDir = "$rootProject.buildDir/wildfly"
@@ -60,13 +62,13 @@ featurepack {
 	variables['bytebuddySlot'] = bytebuddyVersion
 	variables['infinispan2lcSlot'] = 'for-orm-' + hibernateMinorVersion
 	//Dependency on another Feature Pack:
-	dependency "org.wildfly:wildfly-feature-pack:${project.wildflyVersion}" // It will assume it is "zip" by default
+	dependency "org.wildfly:wildfly-feature-pack:${wildflyVersion}" // It will assume it is "zip" by default
 	//Ensure we declare all source repositories explicitly
 	autoAddRepositories = false
 }
 
 task createCoreFeaturePackZip( type: Zip, dependsOn: [featurepack] ) {
-	baseName 'hibernate-orm-jbossmodules'
+	baseName 'hibernate-orm-modules'
 	from project.fpackStagingDir
 }
 
@@ -79,7 +81,7 @@ provision {
 	override( 'org.hibernate.common:hibernate-commons-annotations' ) {
 		version = project.hibernateCommonsVersion
 	}
-	variables['wildfly.version'] = project.wildflyVersion
+	variables['wildfly.version'] = wildflyVersion
 	variables['hibernate-orm.version'] = hibernateVersion
 	//Ensure we declare all source repositories explicitly
 	autoAddRepositories = false
