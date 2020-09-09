@@ -4,7 +4,7 @@ ext {
 	junit4Version = '4.13'
 	h2Version = '1.4.181'
 
-	arquillianVersion = '1.4.1.Final'
+	arquillianVersion = '1.6.0.Final'
 	shrinkwrapVersion = '1.2.6'
 	shrinkwrapDescriptorsVersion = '2.0.0'
 	wildflyArquillianContainerVersion = '2.2.0.Final'

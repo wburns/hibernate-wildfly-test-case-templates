@@ -7,15 +7,18 @@
 apply plugin: 'base'
 apply plugin: 'maven'
 
-def hibernateVersion = '5.3.18.Final'
-def wildflyVersion = '20.0.1.Final'
-def arquillianVersion = '1.6.0.Final'
-
+def hibernateVersion = '5.0.12.Final'
+def wildflyVersion = '11.0.0.Final'
 
 ext {
 	// Exact ORM version, e.g. "5.1.1.Final"
 	// Just the minor ORM version, e.g. "5.1"; Is used as an alias for the exact version
 	minorSlot = hibernateVersion.substring( 0, hibernateVersion.indexOf( ".", hibernateVersion.indexOf( "." ) + 1 ) )
+
+	majorWildflyVersion = wildflyVersion.substring( 0, wildflyVersion.indexOf( "." ) )
+
+	// directory for building the ZIP file from
+	modulesDirectory = "$buildDir/hibernate-orm-modules"
 }
 
 configurations {
@@ -26,19 +29,20 @@ dependencies {
 	wildflyDist "org.wildfly:wildfly-dist:${wildflyVersion}@zip"
 
 	testCompile "org.hibernate:hibernate-core:${hibernateVersion}"
-	testCompile "javax.inject:javax.inject:1"
+	testCompile "org.hibernate:hibernate-entitymanager:${hibernateVersion}"
 
 	testCompile libraries.junit
+	testCompile libraries.arquillian_junit_container
+	testCompile libraries.arquillian_protocol_servlet
+
 	testCompile libraries.shrinkwrap_descriptors_api_javaee
 	testCompile libraries.shrinkwrap_descriptors_impl_javaee
-
-	testCompile "org.jboss.arquillian.junit:arquillian-junit-container:${arquillianVersion}"
-	testCompile "org.jboss.arquillian.protocol:arquillian-protocol-servlet:${arquillianVersion}"
 
 	testCompile( 'org.wildfly.arquillian:wildfly-arquillian-container-managed:2.1.1.Final' ) {
 		exclude group: 'org.picketbox', module: 'picketbox'
 	}
 }
+
 
 // Unzip Wildfly Dist
 task extractWildFly( type: Copy ) {
@@ -69,4 +73,3 @@ task copyResourcesToIntelliJOutFolder(dependsOn: filterArquillianXml) {
 
 test.dependsOn extractWildFly
 test.dependsOn filterArquillianXml, copyResourcesToIntelliJOutFolder
-

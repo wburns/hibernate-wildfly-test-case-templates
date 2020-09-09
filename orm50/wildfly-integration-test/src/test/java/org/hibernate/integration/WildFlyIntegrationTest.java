@@ -47,6 +47,8 @@ public class WildFlyIntegrationTest {
 			)
 	);
 
+	// Add your entities here.
+	// .addClass( TestEntity.class )
 	@Deployment
 	public static WebArchive createDeployment() {
 		return ShrinkWrap.create( WebArchive.class )
@@ -62,6 +64,7 @@ public class WildFlyIntegrationTest {
 				.name( "primary" )
 				.transactionType( PersistenceUnitTransactionType._JTA )
 				.jtaDataSource( "java:jboss/datasources/ExampleDS" )
+				.sharedCacheMode( "ENABLE_SELECTIVE" )
 				.getOrCreateProperties()
 				// We want to use the ORM from this build instead of the one coming with WildFly
 				.createProperty()
@@ -72,20 +75,23 @@ public class WildFlyIntegrationTest {
 				.name( "hibernate.hbm2ddl.auto" )
 				.value( "create-drop" )
 				.up()
-//				.createProperty()
-//				.name( AvailableSettings.USE_SECOND_LEVEL_CACHE )
-//				.value( "true" )
-//				.up()
-//				.createProperty()
-//				.name( AvailableSettings.USE_QUERY_CACHE )
-//				.value( "false" )
-//				.up()
+				.createProperty()
+				.name( "hibernate.show_sql" )
+				.value( "true" )
+				.up()
+				.createProperty()
+				.name( AvailableSettings.USE_SECOND_LEVEL_CACHE )
+				.value( "true" )
+				.up()
+				.createProperty()
+				.name( AvailableSettings.USE_QUERY_CACHE )
+				.value( "false" )
+				.up()
 				.up()
 				.up();
 	}
 
 	static Logger log = Logger.getLogger( WildFlyIntegrationTest.class.getCanonicalName() );
-
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -101,7 +107,7 @@ public class WildFlyIntegrationTest {
 		try {
 			transaction.begin();
 			entityManager.persist( e );
-			transaction.commit(); // entity persisted here unless explicitly flushed earlier
+			transaction.commit();
 		}
 		catch (Throwable throwable) {
 			transaction.rollback();

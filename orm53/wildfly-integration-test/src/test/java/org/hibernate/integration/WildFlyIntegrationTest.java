@@ -47,6 +47,8 @@ public class WildFlyIntegrationTest {
 			)
 	);
 
+	// Add your entities here.
+	// .addClass( TestEntity.class )
 	@Deployment
 	public static WebArchive createDeployment() {
 		return ShrinkWrap.create( WebArchive.class )
@@ -57,11 +59,12 @@ public class WildFlyIntegrationTest {
 
 	private static PersistenceDescriptor persistenceXml() {
 		return Descriptors.create( PersistenceDescriptor.class )
-				.version( "2.1" )
+				.version( "2.2" )
 				.createPersistenceUnit()
 				.name( "primary" )
 				.transactionType( PersistenceUnitTransactionType._JTA )
 				.jtaDataSource( "java:jboss/datasources/ExampleDS" )
+				.sharedCacheMode( "ENABLE_SELECTIVE" )
 				.getOrCreateProperties()
 				// We want to use the ORM from this build instead of the one coming with WildFly
 				.createProperty()
@@ -69,21 +72,21 @@ public class WildFlyIntegrationTest {
 				.value( "org.hibernate:" + ORM_MINOR_VERSION )
 				.up()
 				.createProperty()
+				.name( "hibernate.show_sql" )
+				.value( "true" )
+				.up()
+				.createProperty()
 				.name( "hibernate.hbm2ddl.auto" )
 				.value( "create-drop" )
 				.up()
-//				.createProperty()
-//				.name( AvailableSettings.USE_SECOND_LEVEL_CACHE )
-//				.value( "true" )
-//				.up()
-//				.createProperty()
-//				.name( AvailableSettings.USE_QUERY_CACHE )
-//				.value( "false" )
-//				.up()
-//				.createProperty()
-//				.name( AvailableSettings.CACHE_REGION_FACTORY )
-//				.value( "org.infinispan.hibernate.cache.v53.InfinispanRegionFactory" )
-//				.up()
+				.createProperty()
+				.name( AvailableSettings.USE_SECOND_LEVEL_CACHE )
+				.value( "true" )
+				.up()
+				.createProperty()
+				.name( AvailableSettings.USE_QUERY_CACHE )
+				.value( "false" )
+				.up()
 				.up()
 				.up();
 	}
@@ -105,7 +108,7 @@ public class WildFlyIntegrationTest {
 		try {
 			transaction.begin();
 			entityManager.persist( e );
-			transaction.commit(); // entity persisted here unless explicitly flushed earlier
+			transaction.commit();
 		}
 		catch (Throwable throwable) {
 			transaction.rollback();
@@ -114,5 +117,4 @@ public class WildFlyIntegrationTest {
 		TestEntity finded = entityManager.find( TestEntity.class, e.getId() );
 		assertThat( finded, notNullValue() );
 	}
-
 }
