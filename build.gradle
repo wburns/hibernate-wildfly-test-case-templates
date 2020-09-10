@@ -16,11 +16,6 @@ allprojects {
 			dirs 'libs'
 		}
 	}
-	apply plugin: 'java'
-	apply plugin: 'build-dashboard'
-	apply plugin: 'project-report'
-
-	buildDir = "target"
 }
 
 buildscript {

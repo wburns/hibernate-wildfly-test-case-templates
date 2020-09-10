@@ -1,0 +1,102 @@
+apply plugin: 'java'
+apply plugin: 'build-dashboard'
+apply plugin: 'project-report'
+
+buildDir = "target"
+
+sourceSets {
+	integrationTest {
+		java {
+			compileClasspath += main.output + test.output
+			runtimeClasspath += main.output + test.output
+			srcDir file('src/integration-test/java')
+		}
+		resources.srcDir file('src/integration-test/resources')
+	}
+}
+
+configurations {
+	wildflyDist
+	integrationTestCompile.extendsFrom testCompile
+	integrationTestRuntime.extendsFrom testRuntime
+}
+
+dependencies {
+	compile group: hibernateGroupId, name: 'hibernate-core', version: hibernateVersion
+	compile group: hibernateGroupId, name: 'hibernate-envers', version: hibernateVersion
+	compile group: hibernateGroupId, name: 'hibernate-testing', version: hibernateVersion
+
+	compile libraries.logging
+
+	compile libraries.h2
+
+	testCompile libraries.junit
+
+	// Integration tests
+
+	wildflyDist "org.wildfly:wildfly-dist:${wildflyVersion}@zip"
+
+	integrationTestCompile libraries.arquillian_junit_container
+	integrationTestCompile libraries.arquillian_protocol_servlet
+
+	integrationTestCompile libraries.shrinkwrap_descriptors_api_javaee
+	integrationTestCompile libraries.shrinkwrap_descriptors_impl_javaee
+
+	integrationTestCompile( 'org.wildfly.arquillian:wildfly-arquillian-container-managed:2.1.1.Final' ) {
+		exclude group: 'org.picketbox', module: 'picketbox'
+	}
+}
+
+task integrationTest( type: Test ) {
+	description = 'Runs the integration tests.'
+	group = 'verification'
+	testClassesDirs = sourceSets.integrationTest.output.classesDirs
+	classpath = sourceSets.integrationTest.runtimeClasspath
+	outputs.upToDateWhen { false }
+}
+
+check.dependsOn integrationTest
+
+// Unzip Wildfly Dist
+task extractWildFly( type: Copy ) {
+
+	from {
+		configurations.wildflyDist.collect { zipTree( it ) }
+	}
+	into "$buildDir"
+
+}
+
+task renameOriginalWildFlyFolder {
+	doLast {
+		File wildflyFolder = new File( "${buildDir}/wildfly-${wildflyVersion}" )
+		wildflyFolder.renameTo( "${buildDir}/wildfly" )
+	}
+}
+
+// Replace properties in arquillian.xml; Actually this should be done by means of configuring
+// the processTestResourcesTask itself, but while that works for resources in src/main/resources,
+// the same failed for src/test/resources; I reckon it's a bug in Gradle
+task filterArquillianXml( dependsOn: processIntegrationTestResources, type: Copy ) {
+	into( buildDir.getName() + '/resources/integrationTest' )
+	expand( buildDir: buildDir.getName(), wildflyVersion: wildflyVersion )
+
+	from 'src/integration-test/resources'
+}
+
+task copyResourcesToIntelliJOutFolder( dependsOn: filterArquillianXml ) {
+	doLast {
+		copy {
+			from "$buildDir/resources/test"
+			into 'out/test/resources'
+		}
+
+		copy {
+			from "$buildDir/resources/integrationTest"
+			into 'out/integrationTest/resources'
+		}
+	}
+}
+
+integrationTest.dependsOn extractWildFly, filterArquillianXml, renameOriginalWildFlyFolder
+renameOriginalWildFlyFolder.dependsOn extractWildFly

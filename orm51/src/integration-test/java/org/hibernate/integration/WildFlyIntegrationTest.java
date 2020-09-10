@@ -6,6 +6,7 @@
  */
 package org.hibernate.integration;
 
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import javax.persistence.EntityManager;
@@ -29,8 +30,9 @@ import org.jboss.shrinkwrap.descriptor.api.Descriptors;
 import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceDescriptor;
 import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceUnitTransactionType;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.IsNull.notNullValue;
+import static org.junit.Assert.fail;
 
 
 /**
@@ -38,14 +40,6 @@ import static org.hamcrest.core.IsNull.notNullValue;
  */
 @RunWith(Arquillian.class)
 public class WildFlyIntegrationTest {
-	private static final String ORM_VERSION = Session.class.getPackage().getImplementationVersion();
-	private static final String ORM_MINOR_VERSION = ORM_VERSION.substring(
-			0,
-			ORM_VERSION.indexOf(
-					".",
-					ORM_VERSION.indexOf( "." ) + 1
-			)
-	);
 
 	// Add your entities here.
 	// .addClass( TestEntity.class )
@@ -66,11 +60,6 @@ public class WildFlyIntegrationTest {
 				.jtaDataSource( "java:jboss/datasources/ExampleDS" )
 				.sharedCacheMode( "ENABLE_SELECTIVE" )
 				.getOrCreateProperties()
-				// We want to use the ORM from this build instead of the one coming with WildFly
-				.createProperty()
-				.name( "jboss.as.jpa.providerModule" )
-				.value( "org.hibernate:" + ORM_MINOR_VERSION )
-				.up()
 				.createProperty()
 				.name( "hibernate.hbm2ddl.auto" )
 				.value( "create-drop" )
