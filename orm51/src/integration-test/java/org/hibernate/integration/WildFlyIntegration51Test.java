@@ -30,13 +30,14 @@ import org.jboss.shrinkwrap.descriptor.api.persistence21.PersistenceUnitTransact
 
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.fail;
 
 
 /**
  * @author Andrea Boriero
  */
 @RunWith(Arquillian.class)
-public class WildFlyIntegrationTest {
+public class WildFlyIntegration51Test {
 
 	// Add your entities here.
 	// .addClass( TestEntity.class )
@@ -50,7 +51,7 @@ public class WildFlyIntegrationTest {
 
 	private static PersistenceDescriptor persistenceXml() {
 		return Descriptors.create( PersistenceDescriptor.class )
-				.version( "2.2" )
+				.version( "2.1" )
 				.createPersistenceUnit()
 				.name( "primary" )
 				.transactionType( PersistenceUnitTransactionType._JTA )
@@ -58,12 +59,12 @@ public class WildFlyIntegrationTest {
 				.sharedCacheMode( "ENABLE_SELECTIVE" )
 				.getOrCreateProperties()
 				.createProperty()
-				.name( "hibernate.show_sql" )
-				.value( "true" )
-				.up()
-				.createProperty()
 				.name( "hibernate.hbm2ddl.auto" )
 				.value( "create-drop" )
+				.up()
+				.createProperty()
+				.name( "hibernate.show_sql" )
+				.value( "true" )
 				.up()
 				.createProperty()
 				.name( AvailableSettings.USE_SECOND_LEVEL_CACHE )
@@ -77,8 +78,7 @@ public class WildFlyIntegrationTest {
 				.up();
 	}
 
-	static Logger log = Logger.getLogger( WildFlyIntegrationTest.class.getCanonicalName() );
-
+	static Logger log = Logger.getLogger( WildFlyIntegration51Test.class.getCanonicalName() );
 
 	@PersistenceContext
 	private EntityManager entityManager;
