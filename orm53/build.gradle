@@ -1,6 +1,6 @@
-ext.wildflyVersion = '20.0.1.Final'
+ext.wildflyVersion = '22.0.0.Final'
 ext.hibernateGroupId = 'org.hibernate'
-ext.hibernateVersion = '5.3.18.Final'
+ext.hibernateVersion = '5.3.20.Final'
 
 apply from: rootProject.file( 'gradle/integration.gradle' )
 

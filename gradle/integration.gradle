@@ -45,6 +45,9 @@ dependencies {
 	integrationTestCompile( 'org.wildfly.arquillian:wildfly-arquillian-container-managed:2.1.1.Final' ) {
 		exclude group: 'org.picketbox', module: 'picketbox'
 	}
+
+	integrationTestCompile libraries.infinispan_hibernate_cache_commons
+	integrationTestCompile libraries.infinispan_hibernate_cache_v53
 }
 
 task integrationTest( type: Test ) {

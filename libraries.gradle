@@ -11,6 +11,7 @@ ext {
 
 	hibernateCommonsVersion = '5.0.4.Final'
 
+	infinispanVersion = '11.0.8.Final'
 
 	libraries = [
 			logging              : 'org.jboss.logging:jboss-logging:3.3.2.Final',
@@ -28,6 +29,9 @@ ext {
 			shrinkwrap_descriptors_impl_javaee: "org.jboss.shrinkwrap.descriptors:shrinkwrap-descriptors-impl-javaee:${shrinkwrapDescriptorsVersion}",
 
 			wildfly_arquillian_container_managed: "org.wildfly.arquillian:wildfly-arquillian-container-managed:${wildflyArquillianContainerVersion}",
+
+			infinispan_hibernate_cache_commons: "org.infinispan:infinispan-hibernate-cache-commons:${infinispanVersion}",
+			infinispan_hibernate_cache_v53: "org.infinispan:infinispan-hibernate-cache-v53:${infinispanVersion}",
 	]
 
 }
