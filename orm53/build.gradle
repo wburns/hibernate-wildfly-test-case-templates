@@ -1,4 +1,4 @@
-ext.wildflyVersion = '22.0.0.Final'
+ext.wildflyVersion = '24.0.0.Beta1-SNAPSHOT'
 ext.hibernateGroupId = 'org.hibernate'
 ext.hibernateVersion = '5.3.20.Final'
 

@@ -22,7 +22,7 @@
     <group qualifier="Grid" default="true">
         <container qualifier="container.active-1" mode="suite" default="true">
             <configuration>
-                <property name="jbossHome">target/wildfly</property>
+                <property name="jbossHome">target/wildfly-24.0.0.Beta1-SNAPSHOT</property>
                 <property name="javaVmArguments">-Djava.net.preferIPv4Stack=true -Djgroups.bind_addr=127.0.0.1</property>
 
                 <!-- For Remote debugging Wildfly, comment the previous line and uncomment the following one -->

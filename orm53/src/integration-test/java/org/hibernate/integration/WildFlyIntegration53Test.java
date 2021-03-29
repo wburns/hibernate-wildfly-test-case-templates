@@ -179,7 +179,7 @@ public class WildFlyIntegration53Test {
 			// (there was a cache miss, and the old value was put in the cache)
 			assertEquals( 1, statistics.getHitCount() );
 			assertEquals( 1, statistics.getMissCount() );
-			assertEquals( 2, statistics.getPutCount() );
+			assertEquals( 1, statistics.getPutCount() );
 
 			// Now get the updated value in this thread
 			final Employee employee = entityManager.find( Employee.class, "John Smith" );

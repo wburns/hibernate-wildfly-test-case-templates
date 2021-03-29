@@ -11,7 +11,7 @@ ext {
 
 	hibernateCommonsVersion = '5.0.4.Final'
 
-	infinispanVersion = '11.0.8.Final'
+	infinispanVersion = '11.0.11-SNAPSHOT'
 
 	libraries = [
 			logging              : 'org.jboss.logging:jboss-logging:3.3.2.Final',
